@@ -1,0 +1,84 @@
+{
+  "name": "@dlcaio/langgraph-checkpoint-dynamodb",
+  "version": "0.1.0",
+  "description": "DynamoDB checkpoints for LangGraph with versioned channel storage, compression, optional S3 offload, and explicit recovery errors.",
+  "type": "module",
+  "license": "MIT",
+  "author": "dlcaio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dlcaio/langgraph-checkpoint-dynamodb.git"
+  },
+  "homepage": "https://github.com/dlcaio/langgraph-checkpoint-dynamodb#readme",
+  "bugs": {
+    "url": "https://github.com/dlcaio/langgraph-checkpoint-dynamodb/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "langgraph",
+    "langchain",
+    "checkpoint",
+    "dynamodb",
+    "aws",
+    "s3",
+    "typescript"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "DYNAMODB_ENDPOINT=http://127.0.0.1:18000 vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run typecheck && npm run test && npm run build && publint",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1131.0",
+    "@aws-sdk/lib-dynamodb": "^3.1131.0",
+    "@aws-sdk/client-s3": "^3.1131.0"
+  },
+  "peerDependencies": {
+    "@langchain/core": "^1.2.11",
+    "@langchain/langgraph-checkpoint": "^1.1.5"
+  },
+  "devDependencies": {
+    "@langchain/core": "1.2.11",
+    "@langchain/langgraph": "1.4.15",
+    "@langchain/langgraph-checkpoint": "1.1.5",
+    "@langchain/langgraph-checkpoint-validation": "1.1.1",
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.3",
+    "vitest": "4.1.11",
+    "prettier": "^3.6.2",
+    "publint": "^0.3.12"
+  }
+}
