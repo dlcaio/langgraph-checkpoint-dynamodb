@@ -27,7 +27,7 @@ const saver = new DynamoDBSaver({
   tableName: 'agent-checkpoints',
   clientConfig: { region: 'eu-west-1' },
   retentionSeconds: 7 * 24 * 60 * 60,
-  // Optional. Required when an encoded payload exceeds maxInlineBytes.
+  // Optional checkpoint payload overflow; does not manage image files.
   s3: { bucketName: 'your-checkpoint-bucket', keyPrefix: 'checkpoints/' },
 });
 
@@ -51,11 +51,19 @@ AWS clients use the standard AWS SDK credential provider chain. Use an IAM role 
 
 ## What reduces storage?
 
-- **Channel version reuse:** if an image or other value has the same channel version across ten checkpoints, its channel payload is stored once. This is version-based reuse, not content-based deduplication.
+- **Channel version reuse:** if a value has the same channel version across ten checkpoints, its channel payload is stored once. This is version-based reuse, not content-based deduplication.
 - **Compression:** gzip runs before optional application encryption and only stores compressed bytes when they are smaller.
 - **Explicit retention:** a thread can have a fixed lifetime, followed by cleanup of its DynamoDB and S3 data.
 
 A growing messages array changes on each step. Each new version is still stored in full, so this package alone does not make an indefinitely growing conversation small. Keep tool responses concise, store large artifacts outside graph state, and summarize messages in your graph. See [history and retention](docs/operations.md).
+
+## Images and other external files
+
+Upload images in your application or tool before adding their references to graph state. Checkpoint a stable artifact ID or object key, then resolve it into a fresh model-accessible URL or supported image input inside the model node. See the [image workflow example](docs/images.md).
+
+The saver's optional `s3` setting stores **serialized checkpoint payloads** that exceed `maxInlineBytes` after compression and optional encryption (300 KiB by default). It does not detect images, extract them from messages, or fetch URLs. Without S3 configured, an oversized encoded payload raises `PAYLOAD_TOO_LARGE`. Other state can still need this overflow storage even when images are stored separately.
+
+Your application owns external image access and retention. `deleteThread` and `sweepExpired` remove saver-managed payloads; they do not follow image references or delete your external images. Keep application artifacts in a separate bucket or prefix from checkpoint payloads.
 
 ## Retention and deletion
 

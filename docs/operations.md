@@ -58,7 +58,7 @@ DynamoDB transaction authorization uses the participating item actions, includin
 1. Choose a thread lifetime based on how long a user can reasonably resume a run. Start a new thread for a new workflow; do not use one permanent thread for every run by a user.
 2. Schedule cleanup. Before sweeping, ensure expired runs and any in-flight uploads have finished or been cancelled and awaited. A rejected DynamoDB commit cannot cancel an already-running S3 upload.
 3. Keep stable large values in separate channels. A stable image inside an ever-growing messages array is serialized again whenever that array's version changes.
-4. Prefer artifact IDs or object references over embedded screenshots, documents, and repeated raw tool responses. Your application must manage access and lifecycle for these external artifacts.
+4. Prefer artifact IDs or object references over embedded screenshots, documents, and repeated raw tool responses. Your application must manage access and lifecycle for these external artifacts. See the [image workflow example](images.md). Store artifacts outside the saver's checkpoint object prefix; whole-thread cleanup deletes that prefix, including objects with no database pointer.
 5. Summarize or trim messages using supported LangGraph state updates. Trimming the current state reduces future checkpoints; it does not erase already stored history.
 6. After a completed thread's recovery window closes, delete the whole thread. Arbitrary deletion of old checkpoint rows is unsafe because channel blobs and delta-channel ancestors can still be referenced.
 
@@ -73,6 +73,8 @@ Storage savings do not imply lower costs in every workload. Transactions, strong
 - **Changed S3 configuration:** restore the original bucket and prefix. A fingerprint on the control record prevents cleanup from silently targeting a different store.
 
 Back up DynamoDB and S3 under a coordinated policy. Restoring only DynamoDB can leave pointers to objects already removed by retention. Backups, provider retention, logs, and externally managed artifacts have lifecycles separate from `deleteThread`.
+
+External images must remain available for as long as retained checkpoints need them for resume or replay. Store stable object keys or artifact IDs in state and generate signed URLs when needed, rather than persisting an expiring URL as the only reference. Thread deletion does not delete externally referenced images; account for other threads that may still use them before application-level cleanup.
 
 ## Scale and monitoring
 
